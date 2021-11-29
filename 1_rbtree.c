@@ -1,60 +1,15 @@
 #include "header.h"
 
-void create_nilnode(ROOT* r)
+void create_nilnode(TOTAL* r)
 {
-    r->nil = (NODE*)malloc(sizeof(NODE));
-    (r->nil)->clr = BLACK;
+    r->nil = (STUDENT*)malloc(sizeof(STUDENT));
+    (r->nil)->color = BLACK;
     r->r = r->nil;
 }
 
-ENROLL* create_enroll(char* course_id, char grade) {
-    srand(NULL);
-    ENROLL* temp = (ENROLL*)malloc(sizeof(ENROLL));
-    int index = rand() % 60;
-    temp->course_id = courses[index].course_id;
-    temp->index = index;
-    temp->grade = grade;
-    if (temp->grade == 'A') {
-        temp->point = 4;
-    }
-    else if (temp->grade == 'B') {
-        temp->point = 3;
-    }
-    else if (temp->grade == 'C') {
-        temp->point = 2;
-    }
-    else if (temp->grade == 'D') {
-        temp->point = 1;
-    }
-    else {
-        temp->point = 0;
-    }
-    return temp;
-}
-
-NODE* create_student(ROOT* r, int student_id)
+void left_rotate(TOTAL* r, STUDENT* x)
 {
-    NODE* n = (NODE*)malloc(sizeof(NODE));
-    NODE* temp = r->r;
-    NODE* p = r->nil;
-
-    n->left = r->nil;
-    n->right = r->nil;
-    n->clr = RED;
-
-    n->key = student_id;
-    for (int i = 0; i < 60; i++) {
-        n->course[i] = NULL;
-    }
-    n->gpa = 0;
-    n->remain_credit = 140;
-
-    return n;
-}
-
-void left_rotate(ROOT* r, NODE* x)
-{
-    NODE* temp;
+    STUDENT* temp;
 
     temp = x->right;
     // turn temp's left subtree into x's right subtree
@@ -83,10 +38,9 @@ void left_rotate(ROOT* r, NODE* x)
     temp->left = x; // put x on temp's left
     x->p = temp;
 }
-
-void right_rotate(ROOT* r, NODE* y)
+void right_rotate(TOTAL* r, STUDENT* y)
 {
-    NODE* temp;
+    STUDENT* temp;
 
     temp = y->left;
     // turn temp's right subtree into y's left subtree
@@ -116,62 +70,23 @@ void right_rotate(ROOT* r, NODE* y)
     y->p = temp;
 }
 
-void insert_node(ROOT* r, NODE* n)
+void insert_fixup(TOTAL* r, STUDENT* x)
 {
+    STUDENT* u = NULL;;
 
-    NODE* temp = r->r;
-    NODE* p = r->nil;
-
-    // find the position that new node can be inserted.
-    while (temp != r->nil)
-    {
-        p = temp;
-
-        if (n->key > temp->key)
-        {
-            temp = temp->right;
-        }
-        else
-        {
-            temp = temp->left;
-        }
-    }
-
-    n->p = p; // link new node to p
-
-    if (p == r->nil)
-    {
-        r->r = n;
-    }
-    else if (n->key > p->key)
-    {
-        p->right = n;
-    }
-    else
-    {
-        p->left = n;
-    }
-
-    insert_fixup(r, n);
-}
-
-void insert_fixup(ROOT* r, NODE* x)
-{
-    NODE* u = NULL;;
-
-    while ((x->p)->clr == RED)
+    while ((x->p)->color == RED)
     {
         if (x->p == (x->p->p)->left)
         {
             u = (x->p->p)->right;
 
             // process property 4 of the red-black properties.
-            if (u->clr == RED)
+            if (u->color == RED)
             {
-                (x->p)->clr = BLACK;
-                u->clr = BLACK;
+                (x->p)->color = BLACK;
+                u->color = BLACK;
 
-                (x->p->p)->clr = RED;
+                (x->p->p)->color = RED;
 
                 x = (x->p->p);
             }
@@ -185,8 +100,8 @@ void insert_fixup(ROOT* r, NODE* x)
                     left_rotate(r, x);
                 }
 
-                (x->p)->clr = BLACK;
-                (x->p->p)->clr = RED;
+                (x->p)->color = BLACK;
+                (x->p->p)->color = RED;
 
                 right_rotate(r, (x->p->p));
             }
@@ -196,12 +111,12 @@ void insert_fixup(ROOT* r, NODE* x)
             u = (x->p->p)->left;
 
             // process property 4 of the red-black properties.
-            if (u->clr == RED)
+            if (u->color == RED)
             {
-                (x->p)->clr = BLACK;
-                u->clr = BLACK;
+                (x->p)->color = BLACK;
+                u->color = BLACK;
 
-                (x->p->p)->clr = RED;
+                (x->p->p)->color = RED;
 
                 x = (x->p->p);
             }
@@ -215,8 +130,8 @@ void insert_fixup(ROOT* r, NODE* x)
                     right_rotate(r, x);
                 }
 
-                (x->p)->clr = BLACK;
-                (x->p->p)->clr = RED;
+                (x->p)->color = BLACK;
+                (x->p->p)->color = RED;
 
                 left_rotate(r, (x->p->p));
             }
@@ -224,10 +139,40 @@ void insert_fixup(ROOT* r, NODE* x)
     }
 
     // correct the lone violation of property 2.
-    (r->r)->clr = BLACK;
+    (r->r)->color = BLACK;
+}
+void insert_node(TOTAL* r, int student_id, ENROLL* new_infos){
+
+    STUDENT* temp = r->r;
+    STUDENT* p = r->nil;
+    STUDENT* n = create_student(r, student_id, new_infos);
+
+    while (temp != r->nil){
+        p = temp;
+
+        if (n->student_id > temp->student_id){
+            temp = temp->right;
+        }
+        else{
+            temp = temp->left;
+        }
+    }
+
+    n->p = p;
+
+    if (p == r->nil){
+        r->r = n;
+    }else if (n->student_id > p->student_id){
+        p->right = n;
+    }else{
+        p->left = n;
+    }
+
+    insert_fixup(r, n);
+    print_rb_info(r, n);
 }
 
-void tree_transplant(ROOT* r, NODE* t, NODE* c)
+void tree_transplant(TOTAL* r, STUDENT* t, STUDENT* c)
 {
     if (t->p == r->nil)
     {
@@ -244,18 +189,110 @@ void tree_transplant(ROOT* r, NODE* t, NODE* c)
 
     c->p = t->p; // link target's parent to child's parent.
 }
-
-void delete_node(ROOT* r, int key)
+void delete_fixup(TOTAL* r, STUDENT* x)
 {
-    NODE* target = r->r; // the node that we want to remove.
-    NODE* temp = NULL; // the node that is moved or removed.
-    NODE* x = NULL; // temp's original position
+    STUDENT* s = NULL; // sibling node.
+
+    while ((x != r->r) && (x->color == BLACK))
+    {
+        if (x == (x->p)->left)
+        {
+            s = (x->p)->right;
+
+            // case 1 : x's sibling s is red
+            if (s->color == RED)
+            {
+                s->color = BLACK;
+                (x->p)->color = RED;
+                left_rotate(r, x->p);
+                // update x's sibling
+                s = (x->p)->right;
+            }
+
+            // case 2 : x's sibling s is black, and both of s's children are black.
+            if ((s->left)->color == BLACK && (s->right)->color == BLACK)
+            {
+                s->color = RED;
+                x = x->p;
+            }
+            // case 3 : x's sibling s is black, s's left child is red, another is black.
+            else if ((s->left)->color == RED && (s->right)->color == BLACK)
+            {
+                s->color = RED;
+                (s->left)->color = BLACK;
+                right_rotate(r, s);
+                // update x's sibling
+                s = (x->p)->right;
+            }
+
+            // case 4 : x's sibling s is black, s's right child is red.
+            if ((s->right)->color == RED)
+            {
+                s->color = (x->p)->color;
+                (s->right)->color = BLACK;
+                (x->p)->color = BLACK;
+                left_rotate(r, x->p);
+
+                x = r->r;
+            }
+
+        }
+        else
+        {
+            s = (x->p)->left;
+
+            // case 1 : x's sibling s is red
+            if (s->color == RED)
+            {
+                s->color = BLACK;
+                (x->p)->color = RED;
+                right_rotate(r, x->p);
+                // update x's sibling
+                s = (x->p)->left;
+            }
+
+            // case 2 : x's sibling s is black, and both of s's children are black.
+            if ((s->left)->color == BLACK && (s->right)->color == BLACK)
+            {
+                s->color = RED;
+                x = x->p;
+            }
+            // case 3 : x's sibling s is black, s's right child is red, another is black.
+            else if ((s->right)->color == RED && (s->left)->color == BLACK)
+            {
+                s->color = RED;
+                (s->right)->color = BLACK;
+                left_rotate(r, s);
+                // update x's sibling
+                s = (x->p)->left;
+            }
+
+            // case 4 : x's sibling s is black, s's left child is red.
+            if ((s->left)->color == RED)
+            {
+                s->color = (x->p)->color;
+                (s->left)->color = BLACK;
+                (x->p)->color = BLACK;
+                right_rotate(r, x->p);
+
+                x = r->r;
+            }
+        }
+    }
+
+    x->color = BLACK;
+}
+void delete_node(TOTAL* r, int student_id)
+{
+    STUDENT* target = r->r; // the node that we want to remove.
+    STUDENT* temp = NULL; // the node that is moved or removed.
+    STUDENT* x = NULL; // temp's original position
     char t_clr;
 
     // find the node that has the key
-    while (key != target->key)
+    while (student_id != target->student_id)
     {
-        if (target->key > key)
+        if (target->student_id > student_id)
         {
             target = target->left;
         }
@@ -264,7 +301,7 @@ void delete_node(ROOT* r, int key)
             target = target->right;
         }
     }
-    t_clr = target->clr;
+    t_clr = target->color;
 
     // the target has the child on the right.
     if (target->left == r->nil)
@@ -288,7 +325,7 @@ void delete_node(ROOT* r, int key)
             temp = temp->left;
         }
 
-        t_clr = temp->clr;
+        t_clr = temp->color;
         x = temp->right;
 
         // because temp will move target's position,
@@ -301,258 +338,140 @@ void delete_node(ROOT* r, int key)
         tree_transplant(r, target, temp);
         temp->left = target->left;
         (temp->left)->p = temp;
-        temp->clr = target->clr;
+        temp->color = target->color;
     }
 
     if (t_clr == BLACK)
     {
         delete_fixup(r, x);
     }
-
+    print_rb_info(r, target);
     free(target);
 }
 
-void delete_fixup(ROOT* r, NODE* x)
+//=============================================================================
+
+STUDENT* create_student(TOTAL* r, int student_id, ENROLL* new_infos)
 {
-    NODE* s = NULL; // sibling node.
+    STUDENT* n = (STUDENT*)malloc(sizeof(STUDENT));
+    STUDENT* temp = r->r;
+    STUDENT* p = r->nil;
 
-    while ((x != r->r) && (x->clr == BLACK))
-    {
-        if (x == (x->p)->left)
-        {
-            s = (x->p)->right;
+    n->left = r->nil;
+    n->right = r->nil;
+    n->color = RED;
 
-            // case 1 : x's sibling s is red
-            if (s->clr == RED)
-            {
-                s->clr = BLACK;
-                (x->p)->clr = RED;
-                left_rotate(r, x->p);
-                // update x's sibling
-                s = (x->p)->right;
-            }
+    n->student_id = student_id;
+    n->registered = NULL;
+    n->myGPA = 0;
+    n->complete_credits = 0;
 
-            // case 2 : x's sibling s is black, and both of s's children are black.
-            if ((s->left)->clr == BLACK && (s->right)->clr == BLACK)
-            {
-                s->clr = RED;
-                x = x->p;
-            }
-            // case 3 : x's sibling s is black, s's left child is red, another is black.
-            else if ((s->left)->clr == RED && (s->right)->clr == BLACK)
-            {
-                s->clr = RED;
-                (s->left)->clr = BLACK;
-                right_rotate(r, s);
-                // update x's sibling
-                s = (x->p)->right;
-            }
-
-            // case 4 : x's sibling s is black, s's right child is red.
-            if ((s->right)->clr == RED)
-            {
-                s->clr = (x->p)->clr;
-                (s->right)->clr = BLACK;
-                (x->p)->clr = BLACK;
-                left_rotate(r, x->p);
-
-                x = r->r;
-            }
-
-        }
-        else
-        {
-            s = (x->p)->left;
-
-            // case 1 : x's sibling s is red
-            if (s->clr == RED)
-            {
-                s->clr = BLACK;
-                (x->p)->clr = RED;
-                right_rotate(r, x->p);
-                // update x's sibling
-                s = (x->p)->left;
-            }
-
-            // case 2 : x's sibling s is black, and both of s's children are black.
-            if ((s->left)->clr == BLACK && (s->right)->clr == BLACK)
-            {
-                s->clr = RED;
-                x = x->p;
-            }
-            // case 3 : x's sibling s is black, s's right child is red, another is black.
-            else if ((s->right)->clr == RED && (s->left)->clr == BLACK)
-            {
-                s->clr = RED;
-                (s->right)->clr = BLACK;
-                left_rotate(r, s);
-                // update x's sibling
-                s = (x->p)->left;
-            }
-
-            // case 4 : x's sibling s is black, s's left child is red.
-            if ((s->left)->clr == RED)
-            {
-                s->clr = (x->p)->clr;
-                (s->left)->clr = BLACK;
-                (x->p)->clr = BLACK;
-                right_rotate(r, x->p);
-
-                x = r->r;
-            }
-        }
-    }
-
-    x->clr = BLACK;
+    return n;
 }
-
-int getNodes(ROOT* r, NODE* n) {
-    int count = 0;
-
-    if (n != r->nil) {
-        count += 1;
-        count += getNodes(r, n->left);
-        count += getNodes(r, n->right);
-    }
-    return count;
-}
-
-void printLevesKey(ROOT* r, NODE* n) {
-
-    if (n != r->nil) {
-        if (n->left == r->nil && n->right == r->nil) {
-            printf(" %d ", n->key);
-        }
-        printLevesKey(r, n->left);
-        printLevesKey(r, n->right);
-    }
-    return;
-}
-
-int getHeight(ROOT* r, NODE* n) {
-    int level = 0;
-    if (n != r->nil) {
-        level += 1;
-        if (n->left != r->nil || n->right != r->nil) {
-            level += max(getHeight(r, n->left), getHeight(r, n->right));
-        }
-    }
-    return level;
-}
-
-NODE* search_node(ROOT* r, NODE* n, int key) {
+STUDENT* search_student(TOTAL* r, STUDENT* n, int student_id) {
     if (n != NULL) {
-        if (n->key == key) {
+        if (n->student_id == student_id) {
             return n;
-        }
-        else if (n->key < key) {
-            return search_node(r, n->right, key);
-        }
-        else {
-            return search_node(r, n->left, key);
+        }else if (n->student_id < student_id) {
+            return search_student(r, n->right, student_id);
+        }else {
+            return search_student(r, n->left, student_id);
         }
     }
     return NULL;
 }
 
-void print_info(ROOT* r, NODE* n) {
-    //학기별 수강과목, 학점, 시수
-    if (n != NULL) {
-
-        int i = 0;
-        ENROLL* temp = n->course[i];
-        COURSE cur = courses[temp->index];
-
-        while (temp != NULL) {
-            printf("\n%s\n", cur.semester);
-            printf("%s %c %d\n", cur.course_id, temp->grade, cur.credit);
-            temp = n->course[i++];
-        }
-
-        //GPA, 남은 학점
-        int myGPA = n->gpa / (140 - n->remain_credit);
-        printf("[GPA %d, Credit hours %d]\n", myGPA, n->remain_credit);
-    }
-    //총 학생 수, 총 GPA 평점
-    printf("[Total students %d, GPA %d]\n", getNodes(r, r->r), getTotalGPA(r, r->r));
-}
-
-int getTotalGPA(ROOT* r, NODE* n) {
-    int totalGPA = 0;
+int get_total_students(TOTAL* r, STUDENT* n) {
+    int count = 0;
 
     if (n != r->nil) {
-        totalGPA += n->gpa;
-        totalGPA += getTotalGPA(r, n->left);
-        totalGPA += getTotalGPA(r, n->right);
+        count += 1;
+        count += get_total_students(r, n->left);
+        count += get_total_students(r, n->right);
     }
-    totalGPA = totalGPA / getNodes(r, r->r);
+    return count;
+}
+int get_point(char grade) {
+    if (grade == 'A') {
+        return 4;
+    }else if (grade == 'B') {
+        return 3;
+    }else if (grade == 'C') {
+        return 2;
+    }else if (grade == 'D') {
+        return 1;
+    }else if (grade == 'F') {
+        return 0;
+    }
+}
+float get_total_GPA(TOTAL* r, STUDENT* n) {
+    float totalGPA = 0;
+
+    if (n != r->nil) {
+        totalGPA += n->myGPA;
+        totalGPA += get_total_GPA(r, n->left);
+        totalGPA += get_total_GPA(r, n->right);
+    }
+    totalGPA = totalGPA / get_total_students(r, r->r);
     return totalGPA;
 }
 
-void print_rbInfo(ROOT* r, NODE* n) {
+void print_leves_key(TOTAL* r, STUDENT* n) {
 
-    printf("\nTotal number of the nodes: %d\n", getNodes(r, r->r));
-    printf("The key value of root: %d\n", r->r->key);
-    printf("The key valus of leaves: ");
-    printLevesKey(r, r->r);
-    printf("\nThe height of the tree: %d\n", getHeight(r, r->r));
-}
-
-void update_info(ROOT* r, int student_id, char* course_id, char grade) {
-    NODE* thisStudent = search_node(r, r->r, student_id);
-
-    //비어 있는 경우
-    if (thisStudent == NULL) {
-        //새 학생 정보 만들고 추가
-        thisStudent = create_student(r, student_id);
-        thisStudent->course[0] = create_enroll(course_id, grade);
-        thisStudent->gpa = thisStudent->course[0]->point * courses[thisStudent->course[0]->index].credit;
-        thisStudent->remain_credit -= courses[thisStudent->course[0]->index].credit;
-        print_info(r, thisStudent);
-        return;
-    }
-
-    else {
-        //이미 있는 학생 정보 수정하기
-        int i = 0;
-        int newGPA = 0;
-        int newCredit = 0;
-        int done = 0;
-        while (thisStudent->course[i] != NULL) {
-            if (strcmp(thisStudent->course[i]->course_id, course_id) == 0) {
-                done = 1;
-                thisStudent->course[i]->grade = grade;
-                if (grade == 'A') {
-                    thisStudent->course[i]->point = 4;
-                }
-                else if (grade == 'B') {
-                    thisStudent->course[i]->point = 3;
-                }
-                else if (grade == 'C') {
-                    thisStudent->course[i]->point = 2;
-                }
-                else if (grade == 'D') {
-                    thisStudent->course[i]->point = 1;
-                }
-                else {
-                    thisStudent->course[i]->point = 0;
-                }
-            }
-            newGPA += thisStudent->course[i]->point * courses[thisStudent->course[i]->index].credit;
-            newCredit += courses[thisStudent->course[i]->index].credit;
-            i++;
+    if (n != r->nil) {
+        if (n->left == r->nil && n->right == r->nil) {
+            printf(" %d ", n->student_id);
         }
-        //이미 있는 학생 정보 추가하기
-        if (done == 0) {
-            thisStudent->course[i] = create_enroll(course_id, grade);
-            newGPA += thisStudent->course[i]->point * courses[thisStudent->course[i]->index].credit;
-            newCredit += courses[thisStudent->course[i]->index].credit;
-        }
-        thisStudent->gpa = newGPA / newCredit;
-        thisStudent->remain_credit = 140 - newCredit;
-        print_info(r, thisStudent);
-        return;
+        print_leves_key(r, n->left);
+        print_leves_key(r, n->right);
     }
     return;
+}
+int get_height(TOTAL* r, STUDENT* n) {
+    int level = 0;
+    if (n != r->nil) {
+        level += 1;
+        if (n->left != r->nil || n->right != r->nil) {
+            level += max(get_height(r, n->left), get_height(r, n->right));
+        }
+    }
+    return level;
+}
+
+void print_rb_info(TOTAL* r, STUDENT* n) {
+
+    printf("\nTotal number of the nodes: %d\n", get_total_students(r, r->r));
+    printf("The key value of root: %d\n", r->r->student_id);
+    printf("The key valus of leaves: ");
+    print_leves_key(r, r->r);
+    printf("\nThe height of the tree: %d\n", get_height(r, r->r));
+}
+void print_student_info(TOTAL* r, STUDENT* n) {
+
+    SEMESTER* temp = n->registered;
+    float curGPA = 0;
+    int curCount = 0;
+
+    //학기별 수강과목, 학점, 시수
+    while (temp != NULL) {
+        printf("\n%s\n", temp->semeseter_info);
+
+        ENROLL* taken = temp->courses;
+        while (taken != NULL) {
+            curGPA += get_point(taken->grade);
+            curCount += 1;
+            printf("%s %c %d\n", taken->course_id, taken->grade, taken->credit);
+            taken = taken->next;
+        }
+        temp = temp->next;
+    }
+    //GPA, 남은 학점
+    curGPA = curGPA / curCount;
+    n->myGPA = curGPA;
+    n->complete_credits = curCount;
+    printf("[GPA %.2f, Credit hours %d]\n", curGPA, 140 - curCount);
+
+    //총 학생 수, 총 GPA 평점
+    printf("[Total students %d, GPA %.2f]\n", get_total_students(r, r->r), get_total_GPA(r, r->r));
 }
 
